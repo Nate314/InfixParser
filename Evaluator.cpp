@@ -37,7 +37,7 @@ int Evaluator::eval(string equation)
 	// if the equation passed does not have boolean operators,
 	//   evaluate math result
 	else {
-		result = evalPostMath(equation);
+		result = evalPostMath(toPostMath(equation));
 	}
 	// return result
 	return result;
