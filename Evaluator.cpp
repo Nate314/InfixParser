@@ -16,47 +16,54 @@ int Evaluator::eval(string equation) {
 	// if the equation passed has boolean operators,
 	//   evaluate each math portion and build string for boolean equation
 	if (isEquationABooleanEquation) {
+		// stream of tokens in the equation
 		istringstream tokens(equation);
+		// current token being iterated over
 		string token = "";
+		// math equation will include numbers and operators like +, -, *, /, ^, and %
 		string mathEquation = "";
+		// boolean equation will include numbers and operators like <, >, ==, !, !=, <=, >=, &&, and ||
 		string booleanEquation = "";
+		// the next three variables are used for keeping track of parentheses in the equation
 		string parenthesesEquation = "";
 		int isParenthesesCount = 0;
 		bool isParentheses = false;
-
+		// loop through each token in the equation
 		while (tokens >> token) {
+			// if the token is a parentheses
 			if (EvaluatorHelper::parentheses.find(token) != -1) {
 				bool isOpen = EvaluatorHelper::parentheses.find(token) % 2 == 0;
-
+				// if the token is an open parentheses
 				if (isOpen) {
 					isParentheses = true;
 					isParenthesesCount++;
 					continue;
 				}
-
+				// if the token is a closing parentheses
 				else {
 					isParenthesesCount--;
+					// if this closing parentheses cancels out all opening parentheses
 					if (isParenthesesCount == 0) {
 						isParentheses = false;
+						// make recursive call
 						booleanEquation += to_string(eval(parenthesesEquation));
+						parenthesesEquation = "";
 						continue;
 					}
 				}
 			}
-
+			// if this token is between parentheses
 			if (isParenthesesCount > 0) {
-				parenthesesEquation += token += " ";
+				parenthesesEquation += token + " ";
 			}
-
+			// if this token is not between parentheses
 			else {
 				if (EvaluatorHelper::isBooleanOperator(token)) {
 					string booleanEquationPiece = std::to_string(evalPostMath(toPostMath(mathEquation))) + " " + token + " ";
 					booleanEquation += booleanEquationPiece;
 					mathEquation = "";
 				}
-				else {
-					mathEquation += token + " ";
-				}
+				else mathEquation += token + " ";
 			}
 		}
 		booleanEquation += to_string(evalPostMath(toPostMath(mathEquation)));
