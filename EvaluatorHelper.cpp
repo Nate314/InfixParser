@@ -68,7 +68,7 @@ bool EvaluatorHelper::isPartOfOperator(char ch) {
 	else return false;
 }
 
-// returns true if the character passed is an operator on it's own
+// returns true if the character passed is an operator on its own
 bool EvaluatorHelper::isOperator(char ch) {
 	if (ch == '*' || ch == '^' || ch == '%' || isParentheses(ch + ""))
 		return true;
@@ -106,7 +106,7 @@ string EvaluatorHelper::fixSpaces(string expression) {
 	string token = "";
 	istringstream tokens(expression);
 	vector<string> exp;
-	// itterate through each character and add each token to the vector exp
+	// iterate through each character and add each token to the vector exp
 	while (tokens >> ch) {
 		int tokenLen = token.length();
 		bool shouldStartNewToken = (tokenLen == 2 && isOperator(token))
