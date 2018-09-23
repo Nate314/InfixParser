@@ -21,9 +21,8 @@ bool EvaluatorHelper::isBooleanEquation(string equation) {
 
 // returns true if the string passed is a math operator
 bool EvaluatorHelper::isMathOperator(string str) {
-	if (str == "^" || str == "*"
-		|| str == "/" || str == "%"
-		|| str == "+" || str == "-")
+	string mathOperators = "-+*/%^";
+	if (mathOperators.find(str) != -1)
 		return true;
 	else return false;
 }
@@ -60,17 +59,16 @@ bool EvaluatorHelper::isOperator(string str) {
 
 // returns true if the character passed is part of an operator
 bool EvaluatorHelper::isPartOfOperator(char ch) {
-	if (ch == '!' || ch == '=' || ch == '<' || ch == '>'
-		|| ch == '|' || ch == '&' || ch == '+' || ch == '-'
-		|| ch == '%' || ch == '*' || ch == '^'
-		|| isParentheses(ch + ""))
+	string operatorParts = "!=<>|&+-%*/^";
+	if (operatorParts.find(ch) != -1 || isParentheses(ch + ""))
 		return true;
 	else return false;
 }
 
-// returns true if the character passed is an operator on its own
+// returns true if the character passed is an operator on it's own
 bool EvaluatorHelper::isOperator(char ch) {
-	if (ch == '*' || ch == '^' || ch == '%' || isParentheses(ch + ""))
+	string singleCharOperators("*^%/");
+	if (singleCharOperators.find(ch) != -1 || isParentheses(ch + ""))
 		return true;
 	else return false;
 }
@@ -106,7 +104,7 @@ string EvaluatorHelper::fixSpaces(string expression) {
 	string token = "";
 	istringstream tokens(expression);
 	vector<string> exp;
-	// iterate through each character and add each token to the vector exp
+	// itterate through each character and add each token to the vector exp
 	while (tokens >> ch) {
 		int tokenLen = token.length();
 		bool shouldStartNewToken = (tokenLen == 2 && isOperator(token))
@@ -127,33 +125,6 @@ string EvaluatorHelper::fixSpaces(string expression) {
 			exp.push_back(token);
 			token = ch;
 		}
-		/*
-		bool a = ((isPartOfOperator(ch) || isOperator(ch)) && ((token.length() == 1 ? isPartOfOperator(token[0]) : isOperator(token)) || token == ""));
-		bool b = (token == "-" && isDigit(ch));
-		bool c = (isDigit(ch) && isNumber(token));
-		bool d = (isDigit(ch) && (isOperator(token) || token == ""));
-		bool e = (isPartOfOperator(ch) && isNumber(token));
-		// if ch is part of an operator
-		// if ch is right after a '-' and ch is a digit
-		// if ch is a digit, and the token is currently a number
-		if (a || b || c) {
-			if (isOperator(token + ch) || isNumber(token + ch)) token += ch;
-			else {
-				exp.push_back(token);
-				token = ch;
-			}
-		}
-		// if ch is a digit and the token is a non '-' token
-		// if ch is an operator and the token is a number
-		else if (d || e) {
-			istringstream tempstream(token);
-			int a = 0;
-			tempstream >> a;
-			if (a < 0 && (exp.size() > 0 ? isNumber(exp[exp.size() - 1]) : false)) exp.push_back("+");
-			exp.push_back(token);
-			token = ch;
-		}
-		*/
 	}
 	// concatentate result;
 	if (token != "") exp.push_back(token);
@@ -234,4 +205,35 @@ string EvaluatorHelper::addStringAndInt(string str, int i) {
 	int a = 0;
 	token >> a;
 	return std::to_string(a + i);
+}
+
+// returns a 0 or 1 based on (left token right)
+int EvaluatorHelper::evalBool(int left, int right, const string op) {
+	// I am using the find function to convert so I can switch
+	//   over the index of the operator in the following
+	//   string   01234567890123
+	string ops = "!>>=<<==!=&&||";
+	int opID = ops.find(op);
+	switch (opID) {
+		// !
+		case 0: return !left; break;
+		// >
+		case 1: return left > right; break;
+		// >=
+		case 2: return left >= right; break;
+		// <
+		case 4: return left < right; break;
+		// <=
+		case 5: return left <= right; break;
+		// ==
+		case 6: return left == right; break;
+		// !=
+		case 8: return left != right; break;
+		// &&
+		case 10: return left && right; break;
+		// ||
+		case 12: return left || right; break;
+		// anything else
+		default: return -1; break;
+	}
 }

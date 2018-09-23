@@ -40,4 +40,6 @@ public:
 	static void throwException(string exception);
 	// returns a string with the value of the first strings numerical value added to the integer passed
 	static string addStringAndInt(string str, int i);
+	// returns a 0 or 1 based on (left token right)
+	static int evalBool(int left, int right, string op);
 };
