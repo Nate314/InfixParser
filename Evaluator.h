@@ -6,7 +6,7 @@ using namespace std;
 
 class Evaluator {
 private:
-	bool evalPostBool(string equation);
+	int evalPostBool(string equation);
 	int evalPostMath(string equation);
 	string toPostMath(string equation);
 	string toPostBool(string equation);

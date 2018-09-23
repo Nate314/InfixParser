@@ -20,14 +20,43 @@ int Evaluator::eval(string equation) {
 		string token = "";
 		string mathEquation = "";
 		string booleanEquation = "";
+		string parenthesesEquation = "";
+		int isParenthesesCount = 0;
+		bool isParentheses = false;
+
 		while (tokens >> token) {
-			if (EvaluatorHelper::isBooleanOperator(token)) {
-				string booleanEquationPiece = std::to_string(evalPostMath(toPostMath(mathEquation))) + " " + token + " ";
-				booleanEquation += booleanEquationPiece;
-				mathEquation = "";
+			if (EvaluatorHelper::parentheses.find(token) != -1) {
+				bool isOpen = EvaluatorHelper::parentheses.find(token) % 2 == 0;
+
+				if (isOpen) {
+					isParentheses = true;
+					isParenthesesCount++;
+					continue;
+				}
+
+				else {
+					isParenthesesCount--;
+					if (isParenthesesCount == 0) {
+						isParentheses = false;
+						booleanEquation += to_string(eval(parenthesesEquation));
+						continue;
+					}
+				}
 			}
+
+			if (isParenthesesCount > 0) {
+				parenthesesEquation += token += " ";
+			}
+
 			else {
-				mathEquation += token + " ";
+				if (EvaluatorHelper::isBooleanOperator(token)) {
+					string booleanEquationPiece = std::to_string(evalPostMath(toPostMath(mathEquation))) + " " + token + " ";
+					booleanEquation += booleanEquationPiece;
+					mathEquation = "";
+				}
+				else {
+					mathEquation += token + " ";
+				}
 			}
 		}
 		booleanEquation += to_string(evalPostMath(toPostMath(mathEquation)));
@@ -43,7 +72,7 @@ int Evaluator::eval(string equation) {
 }
 
 // Nathan
-bool Evaluator::evalPostBool(string equation) {
+int Evaluator::evalPostBool(string equation) {
 	// stack of operands to be populated and processed
 	stack<int> operands;
 	// Process each token
