@@ -1,7 +1,7 @@
 #include "EvaluatorHelper.h"
 
 // all parentheses values are stored here for reference
-const string EvaluatorHelper::parentheses = "(){}[]";
+const string EvaluatorHelper::parentheses = "()";
 // all digit values are stored here for reference
 const string EvaluatorHelper::digits = "0123456789";
 // all operators with specified precedencies are stored here for reference
@@ -122,12 +122,16 @@ string EvaluatorHelper::fixSpaces(string expression) {
 			//	if(exp.size() > 0 && isNumber())
 			//}
 			if (a < 0 && (exp.size() > 0 ? isNumber(exp[exp.size() - 1]) : false)) exp.push_back("+");
-			exp.push_back(token);
+			if (isNumber(token) || isOperator(token))
+				exp.push_back(token);
+			else
+				throwException(token + " is an invalid character/operator");
 			token = ch;
 		}
 	}
 	// concatentate result;
-	if (token != "") exp.push_back(token);
+	if (token != "" && (isNumber(token) || isOperator(token))) exp.push_back(token);
+	else throwException(token + " is an invalid character/operator");
 	for (int i = 0; i < exp.size(); i++) {
 		if (i > 0 && i < exp.size() - 1) {
 			// if previous and next tokens are both math operators
@@ -196,7 +200,8 @@ string EvaluatorHelper::fixSpaces(string expression) {
 // use this method to throw exceptions
 void EvaluatorHelper::throwException(string exception) {
 	// TODO: actually throw exception
-	cout << "EXCEPTION: " << exception << endl;
+	//std::cerr << "ERROR: " << exception << std::endl;
+	throw exception;
 }
 
 // returns a string with the value of the first strings numerical value added to the integer passed

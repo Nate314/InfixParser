@@ -8,14 +8,14 @@ Evaluator::Evaluator() {
 }
 
 int Evaluator::eval(string equation) {
-	equation = EvaluatorHelper::fixSpaces(equation);
-	// resulting int to return
-	int result = 0;
-	// check if the equation passed has any boolean operators
-	bool isEquationABooleanEquation = EvaluatorHelper::isBooleanEquation(equation);
-	// if the equation passed has boolean operators,
-	//   evaluate each math portion and build string for boolean equation
-	if (isEquationABooleanEquation) {
+	try {
+		equation = EvaluatorHelper::fixSpaces(equation);
+		// resulting int to return
+		int result = 0;
+		// check if the equation passed has any boolean operators
+		bool isEquationABooleanEquation = EvaluatorHelper::isBooleanEquation(equation);
+		// if the equation passed has boolean operators,
+		//   evaluate each math portion and build string for boolean equation
 		// stream of tokens in the equation
 		istringstream tokens(equation);
 		// current token being iterated over
@@ -46,10 +46,14 @@ int Evaluator::eval(string equation) {
 					if (isParenthesesCount == 0) {
 						isParentheses = false;
 						// make recursive call
-						booleanEquation += to_string(eval(parenthesesEquation));
+						string parenthesesEquationResult = to_string(eval(parenthesesEquation));
+						if (isEquationABooleanEquation) booleanEquation += parenthesesEquationResult + " ";
+						else mathEquation += parenthesesEquationResult + " ";
 						parenthesesEquation = "";
 						continue;
 					}
+					else if(isParenthesesCount < 0)
+						EvaluatorHelper::throwException("mismatched parentheses");
 				}
 			}
 			// if this token is between parentheses
@@ -58,28 +62,38 @@ int Evaluator::eval(string equation) {
 			}
 			// if this token is not between parentheses
 			else {
-				if (EvaluatorHelper::isBooleanOperator(token)) {
-					string booleanEquationPiece = std::to_string(evalPostMath(toPostMath(mathEquation))) + " " + token + " ";
-					booleanEquation += booleanEquationPiece;
-					mathEquation = "";
+				if (isEquationABooleanEquation) {
+					if (EvaluatorHelper::isBooleanOperator(token)) {
+						string booleanEquationPiece = std::to_string(evalPostMath(toPostMath(mathEquation))) + " " + token + " ";
+						booleanEquation += booleanEquationPiece;
+						mathEquation = "";
+					}
+					else
+						mathEquation += token + " ";
 				}
-				else mathEquation += token + " ";
+				else
+					mathEquation += token + " ";
 			}
 		}
-		booleanEquation += to_string(evalPostMath(toPostMath(mathEquation)));
-		return evalPostBool(toPostBool(booleanEquation));
+		if (parenthesesEquation != "")
+			EvaluatorHelper::throwException("mismatched parentheses");
+		else {
+			if (isEquationABooleanEquation) {
+				if (mathEquation != "") booleanEquation += to_string(evalPostMath(toPostMath(mathEquation)));
+				return evalPostBool(toPostBool(booleanEquation));
+			}
+			else {
+				return evalPostMath(toPostMath(mathEquation));
+			}
+		}
 	}
-	// if the equation passed does not have boolean operators,
-	//   evaluate math result
-	else {
-		result = evalPostMath(toPostMath(equation));
+	catch (string e) {
+		cerr << e << endl;
 	}
-	// return result
-	return result;
 }
 
 // Nathan
-int Evaluator::evalPostBool(string equation) {
+bool Evaluator::evalPostBool(string equation) {
 	// stack of operands to be populated and processed
 	stack<int> operands;
 	// Process each token
