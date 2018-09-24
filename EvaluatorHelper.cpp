@@ -242,3 +242,19 @@ int EvaluatorHelper::evalBool(int left, int right, const string op) {
 		default: return -1; break;
 	}
 }
+// returns result based on the operation on two numbers(num1 and num2)
+int  EvaluatorHelper::evalOperation(string op, int num1, int num2) {
+	if (op == "+")
+		return (num1 + num2);
+	else if (op == "*")
+		return (num1 * num2);
+	else if (op == "-")
+		return (num1 - num2);
+	else if (op == "/")
+		return (num1 / num2);
+	else if (op == "%")
+		return (num1 % num2);
+	else if (op == "^")
+		return pow(num1, num2);
+	return -1;
+}

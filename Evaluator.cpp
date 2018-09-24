@@ -139,7 +139,37 @@ bool Evaluator::evalPostBool(string equation) {
 
 // Angad
 int Evaluator::evalPostMath(string equation) {
-	return 5;
+	stack<int>numbers_stack; //create a new stack which will contain only numbers
+
+	istringstream tokens(equation); //process each token from the postfix expression
+	string token; 
+	while (tokens >> token) {
+		if (EvaluatorHelper::isNumber(token)) { // if the token in the string is a Number push it to the stack
+			stringstream temp(token);  //temp token to store the token read
+			int number;
+			temp >> number;  //reading the token as an integer
+			numbers_stack.push(number); //push the integer to the number stack
+		}
+		else if (EvaluatorHelper::isMathOperator(token)) { //else if token is an operator pop the top two numbers from stack
+			int number2 = numbers_stack.top(); numbers_stack.pop(); 
+			int number1 = numbers_stack.top(); numbers_stack.pop();
+			int result = EvaluatorHelper::evalOperation(token, number1, number2);  //evaluate the operation on two numbers
+			numbers_stack.push(result);  //push the result to the stack
+		}
+		else {
+			EvaluatorHelper::throwException("Invalid character!"); //exception, if invalid character is found
+		}
+	}
+	if (!numbers_stack.empty()) { //checking if stack is not empty
+		int result = numbers_stack.top(); //final result will be on top of stack, pop the top elemnent
+		numbers_stack.pop();  
+		if (numbers_stack.empty()) {  //if stack is empty after popping result, return the final result
+			return result;
+		}
+		else  EvaluatorHelper::throwException("Stack is not empty");  //exception, if stack is not empty
+	}
+	// if stack of operands is empty, something went wrong
+	else EvaluatorHelper::throwException("No operands were found in evalPostMath()");
 }
 
 // Brian

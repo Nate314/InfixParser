@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <cmath>
 using namespace std;
 
 #pragma once
@@ -42,4 +43,6 @@ public:
 	static string addStringAndInt(string str, int i);
 	// returns a 0 or 1 based on (left token right)
 	static int evalBool(int left, int right, string op);
+	// returns result based on the operation on two numbers(num1 and num2)
+	static int evalOperation(string op, int num1, int num2);
 };
