@@ -24,6 +24,8 @@ int Evaluator::eval(string equation) {
 		string mathEquation = "";
 		// boolean equation will include numbers and operators like <, >, ==, !, !=, <=, >=, &&, and ||
 		string booleanEquation = "";
+		// the equation that 
+		string parentheseslessEquation = "";
 		// the next three variables are used for keeping track of parentheses in the equation
 		string parenthesesEquation = "";
 		int isParenthesesCount = 0;
@@ -36,6 +38,8 @@ int Evaluator::eval(string equation) {
 				// if the token is an open parentheses
 				if (isOpen) {
 					isParentheses = true;
+					if (isParenthesesCount != 0)
+						parenthesesEquation += token + " ";
 					isParenthesesCount++;
 					continue;
 				}
@@ -52,8 +56,7 @@ int Evaluator::eval(string equation) {
 						parenthesesEquation = "";
 						continue;
 					}
-					else if(isParenthesesCount < 0)
-						EvaluatorHelper::throwException("mismatched parentheses");
+					else if (isParenthesesCount < 0) EvaluatorHelper::throwException("The equation '" + equation + "' has mismatched parentheses");
 				}
 			}
 			// if this token is between parentheses
@@ -64,27 +67,40 @@ int Evaluator::eval(string equation) {
 			else {
 				if (isEquationABooleanEquation) {
 					if (EvaluatorHelper::isBooleanOperator(token)) {
-						string booleanEquationPiece = std::to_string(evalPostMath(toPostMath(mathEquation))) + " " + token + " ";
-						booleanEquation += booleanEquationPiece;
+						booleanEquation += token + " ";
 						mathEquation = "";
 					}
-					else
-						mathEquation += token + " ";
+					else booleanEquation += token + " ";
 				}
-				else
-					mathEquation += token + " ";
+				else mathEquation += token + " ";
 			}
 		}
 		if (parenthesesEquation != "")
-			EvaluatorHelper::throwException("mismatched parentheses");
+			EvaluatorHelper::throwException("The equation '" + equation + "' has mismatched parentheses");
 		else {
 			if (isEquationABooleanEquation) {
-				if (mathEquation != "") booleanEquation += to_string(evalPostMath(toPostMath(mathEquation)));
-				return evalPostBool(toPostBool(booleanEquation));
+				if (EvaluatorHelper::isMathEquation(booleanEquation)) {
+					istringstream tokens(booleanEquation);
+					string token = "";
+					string newMathEquation = "";
+					string newBooleanEquation = "";
+					while (tokens >> token) {
+						if (EvaluatorHelper::isBooleanOperator(token)) {
+							newBooleanEquation += to_string(evalPostMath(toPostMath(newMathEquation))) + " " + token + " ";
+							newMathEquation = "";
+						}
+						else newMathEquation += token + " ";
+					}
+					if (newMathEquation != "")
+						newBooleanEquation += to_string(evalPostMath(toPostMath(newMathEquation))) + " ";
+					return evalPostBool(toPostBool(newBooleanEquation));
+				}
+				else {
+					if (mathEquation != "") booleanEquation += to_string(evalPostMath(toPostMath(mathEquation)));
+					return evalPostBool(toPostBool(booleanEquation));
+				}
 			}
-			else {
-				return evalPostMath(toPostMath(mathEquation));
-			}
+			else return evalPostMath(toPostMath(mathEquation));
 		}
 	}
 	catch (string e) {
@@ -113,13 +129,19 @@ bool Evaluator::evalPostBool(string equation) {
 		else if (EvaluatorHelper::isOperator(token)) {
 			int right = -1;
 			if (token != "!") {
-				right = operands.top();
-				operands.pop();
+				if (operands.size() != 0) {
+					right = operands.top();
+					operands.pop();
+				}
+				else EvaluatorHelper::throwException("'" + equation + "' does not have the proper ratio between operators and numbers");
 			}
-			int left = operands.top();
-			operands.pop();
-			int result = EvaluatorHelper::evalBool(left, right, token);
-			operands.push(result);
+			if (operands.size() != 0) {
+				int left = operands.top();
+				operands.pop();
+				int result = EvaluatorHelper::evalBool(left, right, token);
+				operands.push(result);
+			}
+			else EvaluatorHelper::throwException("'" + equation + "' does not have the proper ratio between operators and numbers");
 		}
 		// invalid character found, throw error
 		else EvaluatorHelper::throwException("Character '" + token + "' is not a valid character");
@@ -142,7 +164,7 @@ int Evaluator::evalPostMath(string equation) {
 	stack<int>numbers_stack; //create a new stack which will contain only numbers
 
 	istringstream tokens(equation); //process each token from the postfix expression
-	string token; 
+	string token;
 	while (tokens >> token) {
 		if (EvaluatorHelper::isNumber(token)) { // if the token in the string is a Number push it to the stack
 			stringstream temp(token);  //temp token to store the token read
@@ -151,18 +173,21 @@ int Evaluator::evalPostMath(string equation) {
 			numbers_stack.push(number); //push the integer to the number stack
 		}
 		else if (EvaluatorHelper::isMathOperator(token)) { //else if token is an operator pop the top two numbers from stack
-			int number2 = numbers_stack.top(); numbers_stack.pop(); 
-			int number1 = numbers_stack.top(); numbers_stack.pop();
+			int number2;
+			int number1;
+			if (numbers_stack.size() >= 2) {
+				number2 = numbers_stack.top(); numbers_stack.pop();
+				number1 = numbers_stack.top(); numbers_stack.pop();
+			}
+			else EvaluatorHelper::throwException("'" + equation + "' does not have the proper ratio between operators and numbers");
 			int result = EvaluatorHelper::evalOperation(token, number1, number2);  //evaluate the operation on two numbers
 			numbers_stack.push(result);  //push the result to the stack
 		}
-		else {
-			EvaluatorHelper::throwException("Invalid character!"); //exception, if invalid character is found
-		}
+		else EvaluatorHelper::throwException("Invalid character!"); //exception, if invalid character is found
 	}
 	if (!numbers_stack.empty()) { //checking if stack is not empty
 		int result = numbers_stack.top(); //final result will be on top of stack, pop the top elemnent
-		numbers_stack.pop();  
+		numbers_stack.pop();
 		if (numbers_stack.empty()) {  //if stack is empty after popping result, return the final result
 			return result;
 		}
@@ -230,40 +255,40 @@ string Evaluator::toPostBool(string equation) {
 
 // Lee
 string Evaluator::toPostMath(string equation) {
-    if(equation == ""){
-        cout << "Equation to be acted on cannot be empty." << endl;
-        return equation;
-    }
-    
-    stack<string> operators;
-    istringstream tokens(equation);
-    string currentChar = "";
-    string postfixEquation = "";
-    
-    while(tokens >> currentChar){
-        if(EvaluatorHelper::isNumber(currentChar)){
-            postfixEquation.append(currentChar);
-            postfixEquation.append(" ");
-        }
-        else{
-            if(operators.size() == 0){
-                operators.push(currentChar);
-                continue;
-            }
-            auto currentCharPrec = EvaluatorHelper::operators.find(currentChar);
-            auto topPrec = EvaluatorHelper::operators.find(operators.top());
-            while(operators.size() != 0 && currentCharPrec->second <= topPrec->second){
-                postfixEquation.append(operators.top());
-                postfixEquation.append(" ");
-                operators.pop();
-            }
-            operators.push(currentChar);
-        }
-    }
-    while(operators.size() != 0){
-        postfixEquation.append(operators.top());
-        postfixEquation.append(" ");
-        operators.pop();
-    }
-    return postfixEquation;
+	if (equation == "") {
+		cout << "Equation to be acted on cannot be empty." << endl;
+		return equation;
+	}
+
+	stack<string> operators;
+	istringstream tokens(equation);
+	string currentChar = "";
+	string postfixEquation = "";
+
+	while (tokens >> currentChar) {
+		if (EvaluatorHelper::isNumber(currentChar)) {
+			postfixEquation.append(currentChar);
+			postfixEquation.append(" ");
+		}
+		else {
+			if (operators.size() == 0) {
+				operators.push(currentChar);
+				continue;
+			}
+			auto currentCharPrec = EvaluatorHelper::operators.find(currentChar);
+			auto topPrec = EvaluatorHelper::operators.find(operators.top());
+			while (operators.size() != 0 && currentCharPrec->second <= topPrec->second) {
+				postfixEquation.append(operators.top());
+				postfixEquation.append(" ");
+				operators.pop();
+			}
+			operators.push(currentChar);
+		}
+	}
+	while (operators.size() != 0) {
+		postfixEquation.append(operators.top());
+		postfixEquation.append(" ");
+		operators.pop();
+	}
+	return postfixEquation;
 }
