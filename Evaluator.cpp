@@ -250,8 +250,8 @@ string Evaluator::toPostMath(string equation) {
                 operators.push(currentChar);
                 continue;
             }
-            string currentCharPrec = EvaluatorHelper::operators.find(currentChar);
-            string topPrec = EvaluatorHelper::operators.find(operators.top());
+            auto currentCharPrec = EvaluatorHelper::operators.find(currentChar);
+            auto topPrec = EvaluatorHelper::operators.find(operators.top());
             while(operators.size() != 0 && currentCharPrec->second <= topPrec->second){
                 postfixEquation.append(operators.top());
                 postfixEquation.append(" ");
