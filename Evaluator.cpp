@@ -179,7 +179,7 @@ string Evaluator::toPostBool(string equation) {
 		return equation;
 	}
 
-	string testEquation = "442 <= 3 ! 17"; //		TESTING PURPOSES
+	// string testEquation = "442 <= 3 ! 17"; //		TESTING PURPOSES
 
 	stack <string> operators; // Create a stack to hold the operators in the equation
 	istringstream tokens(equation); // This will grab all characters up until a space and store them into tokens
@@ -230,5 +230,40 @@ string Evaluator::toPostBool(string equation) {
 
 // Lee
 string Evaluator::toPostMath(string equation) {
-	return "5 7 +";
+    if(equation == ""){
+        cout << "Equation to be acted on cannot be empty." << endl;
+        return equation;
+    }
+    
+    stack<string> operators;
+    istringstream tokens(equation);
+    string currentChar = "";
+    string postfixEquation = "";
+    
+    while(tokens >> currentChar){
+        if(EvaluatorHelper::isNumber(currentChar)){
+            postfixEquation.append(currentChar);
+            postfixEquation.append(" ");
+        }
+        else{
+            if(operators.size() == 0){
+                operators.push(currentChar);
+                continue;
+            }
+            string currentCharPrec = EvaluatorHelper::operators.find(currentChar);
+            string topPrec = EvaluatorHelper::operators.find(operators.top());
+            while(operators.size() != 0 && currentCharPrec->second <= topPrec->second){
+                postfixEquation.append(operators.top());
+                postfixEquation.append(" ");
+                operators.pop();
+            }
+            operators.push(currentChar);
+        }
+    }
+    while(operators.size() != 0){
+        postfixEquation.append(operators.top());
+        postfixEquation.append(" ");
+        operators.pop();
+    }
+    return postfixEquation;
 }
