@@ -16,7 +16,8 @@ int main() {
 	if (testing) testEvaluator();
 	else {
 		Evaluator eval;
-		int result = eval.eval("(1+2)-3>-5");
+		 cout<<eval.eval("( ( 1 + 2 ) - 3 ) - 5") <<endl;
+		 system("pause");
 	}
 	return 0;
 }
