@@ -45,5 +45,7 @@ public:
 	// returns a 0 or 1 based on (left token right)
 	static int evalBool(const int& left, const int& right, const string& op);
 	// returns result based on the operation on two numbers(num1 and num2)
-	static int evalOperation(const string& op, const int& num1, const int& num2);
+	static int evalOperation( const string& op, const int& num1, const int& num2);
+	// returns true if the precedecne of op1 is greater than the precedence of op2
+	static bool isOperatorGreaterThan(string op1, string op2);
 };
