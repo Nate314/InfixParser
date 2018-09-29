@@ -5,10 +5,33 @@ const string EvaluatorHelper::parentheses = "()";
 // all digit values are stored here for reference
 const string EvaluatorHelper::digits = "0123456789";
 // all operators with specified precedencies are stored here for reference
-const std::map<string, int> EvaluatorHelper::operators = { {")", 9}, {"!", 8}, {"++", 8}, {"--", 8}, {"^", 7},
-									{"*", 6}, {"/", 6}, {"%", 6}, {"+", 5}, {"-", 5},
-									{">", 4}, {">=", 4}, {"<", 4}, {"<=", 4},
-									{"==", 3}, {"!=", 3}, {"&&", 2}, {"||", 1}, {"(", 0} };
+const map<string, int> EvaluatorHelper::operators = { {")", 9}, {"!", 8}, {"++", 8}, {"--", 8}, {"^", 7},
+							{"*", 6}, {"/", 6}, {"%", 6}, {"+", 5}, {"-", 5},
+							{">", 4}, {">=", 4}, {"<", 4}, {"<=", 4},
+							{"==", 3}, {"!=", 3}, {"&&", 2}, {"||", 1}, {"(", 0} };
+
+// returns true if the precedecne of op1 is greater than the precedence of op2
+bool isOperatorGreaterThan(string op1, string op2) {
+	int op1Precedence;
+	int op2Precedence;
+	bool result = true;
+	map<string, int> ops = EvaluatorHelper::operators;
+	for (map<string, int>::iterator iter = ops.begin(); iter != ops.end(); iter++) {
+		if (iter->first == op1) op1Precedence = iter->second;
+		if (iter->first == op2) op2Precedence = iter->second;
+	}
+	return op1Precedence > op2Precedence;
+}
+
+// returns true if the precedecne of op1 is less than the precedence of op2
+bool isOperatorLessThan(string op1, string op2) {
+	return !isOperatorGreaterThan(op1, op2);
+}
+
+// returns true if the precedecne of op1 is equal to the precedence of op2
+bool isOperatorEqualTo(string op1, string op2) {
+	return !isOperatorGreaterThan(op1, op2) && !isOperatorLessThan(op1, op2);
+}
 
 // returns true if the equation contains a boolean operator
 bool EvaluatorHelper::isBooleanEquation(const string& equation) {
