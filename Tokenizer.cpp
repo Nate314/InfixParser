@@ -1,48 +1,46 @@
-#include "Evaluator.h"
-#include "EvaluatorHelper.h"
 #include "Tokenizer.h"
+
 Tokenizer::Tokenizer(string expression) {
 	string result = "";
-	string temp = "";
+	string expression_without_spaces = "";
 	// remove spaces
 	for (int i = 0; i < expression.length(); i++) {
-		if (expression[i] != ' ') temp += expression[i];
+		if (expression[i] != ' ') expression_without_spaces += expression[i];
 	}
-	expression = temp;
+	expression = expression_without_spaces;
 	char ch = ' ';
+	string previousToken = "";
 	string token = "";
 	istringstream tokens(expression);
 	vector<string> exp;
 	// iterate through each character and add each token to the vector exp
 	while (tokens >> ch) {
 		int tokenLen = token.length();
+		// if the token plus the current char is an operator or is a number
 		bool shouldStartNewToken = (EvaluatorHelper::isOperator(token) && !EvaluatorHelper::isOperator(token + ch))
 			|| (EvaluatorHelper::isNumber(token) && !EvaluatorHelper::isNumber(token + ch));
-		bool isNegativeNumber = (token == "-" && EvaluatorHelper::isDigit(ch));
+		// if the token plus the current char is a negative number
+		bool isNegativeNumber = (token == "-" && EvaluatorHelper::isDigit(ch) && (!EvaluatorHelper::isNumber(previousToken) || previousToken == ""));
+		// if the current char should be added to the current token
 		if (!shouldStartNewToken || isNegativeNumber) token += ch;
+		// if a new token should be started
 		else {
-			istringstream tempstream(token);
-			int a = 0;
-			tempstream >> a;
+			// push current token to vector
+			int a = EvaluatorHelper::strToInt(token);
 			if (a < 0 && (exp.size() > 0 && (exp[exp.size() - 1] == ")" || EvaluatorHelper::isNumber(exp[exp.size() - 1])))) exp.push_back("+");
-			if (EvaluatorHelper::isNumber(token) || EvaluatorHelper::isOperator(token) || token == "") {
+			if (EvaluatorHelper::isNumber(token) || EvaluatorHelper::isOperator(token)) {
 				if (token != "") exp.push_back(token);
 			}
 			else EvaluatorHelper::throwException(token + " is an invalid character/operator");
+			previousToken = token;
 			token = ch;
 		}
 	}
-	// concatentate result;
-	if (token != "" && (EvaluatorHelper::isNumber(token) || EvaluatorHelper::isOperator(token))) {
-		istringstream tempstream(token);
-		int a = 0;
-		tempstream >> a;
-		if (a < 0 && (exp.size() > 0 && (exp[exp.size() - 1] == ")" || EvaluatorHelper::isNumber(exp[exp.size() - 1])))) exp.push_back("+");
-		if (EvaluatorHelper::isNumber(token) || EvaluatorHelper::isOperator(token) || token == "") {
-			if (token != "") exp.push_back(token);
-		}
-		else EvaluatorHelper::throwException(token + " is an invalid character/operator");
-		token = ch;
+	// push final token to vector
+	int a = EvaluatorHelper::strToInt(token);
+	if (a < 0 && (exp.size() > 0 && (exp[exp.size() - 1] == ")" || EvaluatorHelper::isNumber(exp[exp.size() - 1])))) exp.push_back("+");
+	if (EvaluatorHelper::isNumber(token) || EvaluatorHelper::isOperator(token)) {
+		if (token != "") exp.push_back(token);
 	}
 	else EvaluatorHelper::throwException(token + " is an invalid character/operator");
 
@@ -54,14 +52,14 @@ string Tokenizer::next() {
 	if (eqnPieces.size() == 0) // If the vector of items is empty, return nothing, because there is nothing to be returned
 		return "";
 	else {
-		if ((currentPosition + 1) == eqnPieces.size()) // If we are at the end of the vector, return nothing
+		if (currentPosition == eqnPieces.size()) // If we are at the end of the vector, return nothing
 			return "";
 		currentPosition++; // Increment currentPosition for the next use
 		return eqnPieces[currentPosition - 1]; // Return the item in the [currentPosition - 1] spot so the correct item is returned
 	}
 }
 
-void Tokenizer::correctOps(vector <string> & eqn) {
+void Tokenizer::correctOps(vector<string> & eqn) {
 	bool keepRecurse = true; // Initialize keepRecurse so the while loop
 
 	while (keepRecurse) {

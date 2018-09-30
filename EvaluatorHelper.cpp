@@ -82,6 +82,11 @@ bool EvaluatorHelper::isOperator(const string& str) {
 	return false;
 }
 
+bool EvaluatorHelper::isUnaryOperator(const string& str) {
+	if (str == "!" || str == "++" || str == "--") return true;
+	else return false;
+}
+
 // returns true if the character passed is part of an operator
 bool EvaluatorHelper::isPartOfOperator(const char& ch) {
 	string operatorParts = "!=<>|&+-%*/^";
@@ -116,117 +121,6 @@ bool EvaluatorHelper::isNumber(const string& str) {
 	}
 }
 
-// returns a version of the expression passed with one space between each token
-string EvaluatorHelper::fixSpaces(string expression) {
-	string result = "";
-	string temp = "";
-	// remove spaces
-	for (int i = 0; i < expression.length(); i++) {
-		if (expression[i] != ' ') temp += expression[i];
-	}
-	expression = temp;
-	char ch = ' ';
-	string token = "";
-	istringstream tokens(expression);
-	vector<string> exp;
-	// iterate through each character and add each token to the vector exp
-	while (tokens >> ch) {
-		int tokenLen = token.length();
-		bool shouldStartNewToken = (isOperator(token) && !isOperator(token + ch))
-			|| (isNumber(token) && !isNumber(token + ch));
-		bool isNegativeNumber = (token == "-" && isDigit(ch));
-		if (!shouldStartNewToken || isNegativeNumber) token += ch;
-		else {
-			istringstream tempstream(token);
-			int a = 0;
-			tempstream >> a;
-			if (a < 0 && (exp.size() > 0 && (exp[exp.size() - 1] == ")" || isNumber(exp[exp.size() - 1])))) exp.push_back("+");
-			if (isNumber(token) || isOperator(token) || token == "") {
-				if (token != "") exp.push_back(token);
-			}
-			else throwException(token + " is an invalid character/operator");
-			token = ch;
-		}
-	}
-	// concatentate result;
-	if (token != "" && (isNumber(token) || isOperator(token))) {
-		istringstream tempstream(token);
-		int a = 0;
-		tempstream >> a;
-		if (a < 0 && (exp.size() > 0 && (exp[exp.size() - 1] == ")" || isNumber(exp[exp.size() - 1])))) exp.push_back("+");
-		if (isNumber(token) || isOperator(token) || token == "") {
-			if (token != "") exp.push_back(token);
-		}
-		else throwException(token + " is an invalid character/operator");
-		token = ch;
-	}
-	else throwException(token + " is an invalid character/operator");
-	for (int i = 0; i < exp.size(); i++) {
-		if (i > 0 && i < exp.size() - 1) {
-			// if previous and next tokens are both math operators
-			//if ((isMathOperator(exp[i - 1]) || isParentheses(exp[i - 1])) && (isMathOperator(exp[i + 1]) || isParentheses(exp[i + 1]))) {
-			if (isMathOperator(exp[i - 1]) && isMathOperator(exp[i + 1])) {
-				if (exp[i] == "--" || exp[i] == "++")
-					throwException("input cannot have three mathematical operators in a row.");
-				else result += exp[i] + " ";
-			}
-			// if previous token is a math operator and the next token is a number
-			else if ((isMathOperator(exp[i - 1]) || isParentheses(exp[i - 1])) && isNumber(exp[i + 1])) {
-				if (exp[i] == "--") {
-					result += addStringAndInt(exp[i + 1], -1) + " ";
-					i++;
-				}
-				else if (exp[i] == "++") {
-					result += addStringAndInt(exp[i + 1], 1) + " ";
-					i++;
-				}
-				else result += exp[i] + " ";
-			}
-			// if previous token is a number and the next token is a math operator
-			else if (isNumber(exp[i - 1]) && (isMathOperator(exp[i + 1]) || isParentheses(exp[i + 1]))) {
-				if (exp[i] == "--" || exp[i] == "++")
-					throwException("input cannot have '--' or '++' right before a math operator.");
-				else result += exp[i] + " ";
-			}
-			// if previous and next tokens are both math operators
-			else if (isNumber(exp[i - 1]) && isNumber(exp[i + 1])) {
-				if (exp[i] == "--" || exp[i] == "++")
-					throwException("input cannot have '--' or '++' between two numbers.");
-				else result += exp[i] + " ";
-			}
-			// all other cases
-			else {
-				if (exp[i] == "--") {
-					result += addStringAndInt(exp[i + 1], -1) + " ";
-					i++;
-				}
-				else if (exp[i] == "++") {
-					result += addStringAndInt(exp[i + 1], 1) + " ";
-					i++;
-				}
-				else result += exp[i] + " ";
-			}
-		}
-		else if (i == 0) {
-			if (exp[i] == "--") {
-				result += addStringAndInt(exp[i + 1], -1) + " ";
-				i++;
-			}
-			else if (exp[i] == "++") {
-				result += addStringAndInt(exp[i + 1], 1) + " ";
-				i++;
-			}
-			else result += exp[i] + " ";
-		}
-		else if (i == exp.size() - 1) {
-			if (exp[i] == "--" || exp[i] == "++") throwException("input cannot end with a '--' or a '++'.");
-			else result += exp[i];
-		}
-	}
-	// return result
-	return result;
-}
-
 // use this method to throw exceptions
 void EvaluatorHelper::throwException(const string& exception) {
 	throw exception;
@@ -240,46 +134,39 @@ string EvaluatorHelper::addStringAndInt(const string& str, const int& i) {
 	return std::to_string(a + i);
 }
 
-// returns a 0 or 1 based on (left token right)
-int EvaluatorHelper::evalBool(const int& left, const int& right, const string& op) {
+// returns result based on the operation on two numbers(num1 and num2)
+//   if a unary operator is passed, the operator will only be applied to the lhs
+int EvaluatorHelper::evalOperation(const string& op, const int& lhs, const int& rhs) {
 	// I am using the find function to convert so I can switch
 	//   over the index of the operator in the following
 	//   string   01234567890123
-	string ops = "!>>=<<==!=&&||";
+	string ops = "+-*/%^++--!>>=<<==!=&&||";
 	int opID = ops.find(op);
+	if ((opID == 3 || opID == 4) && rhs == 0) throwException("Cannot divide by zero."); // cannot divide by zero
 	switch (opID) {
-		case 0: return !left; break; // !
-		case 1: return left > right; break; // >
-		case 2: return left >= right; break; // >=
-		case 4: return left < right; break; // <
-		case 5: return left <= right; break; // <=
-		case 6: return left == right; break; // ==
-		case 8: return left != right; break; // !=
-		case 10: return left && right; break; // &&
-		case 12: return left || right; break; // ||
-		default: throwException("'" + op + "' is not a valid boolean operator"); break; // anything else
+		case 0: return lhs + rhs; break;	 // +
+		case 1: return lhs - rhs; break;	 // -
+		case 2: return lhs * rhs; break;	 // *
+		case 3: return lhs / rhs; break;	 // /
+		case 4: return lhs % rhs; break;	 // %
+		case 5: return pow(lhs, rhs); break; // ^
+		case 6: return lhs + 1; break;		 // ++
+		case 8: return lhs - 1; break;		 // --
+		case 10: return !lhs; break;		 // !
+		case 11: return lhs > rhs; break;	 // >
+		case 12: return lhs >= rhs; break;   // >=
+		case 14: return lhs < rhs; break;	 // <
+		case 15: return lhs <= rhs; break;   // <=
+		case 16: return lhs == rhs; break;	 // ==
+		case 18: return lhs != rhs; break;	 // !=
+		case 20: return lhs && rhs; break;	 // &&
+		case 22: return lhs || rhs; break;	 // ||
+		default: throwException("'" + op + "' is not a valid operator"); break; // anything else
 	}
 }
-// returns result based on the operation on two numbers(num1 and num2)
-int EvaluatorHelper::evalOperation(const string& op, const int& num1, const int& num2) {
-	if (op == "+")
-		return (num1 + num2);
-	else if (op == "*")
-		return (num1 * num2);
-	else if (op == "-")
-		return (num1 - num2);
-	else if (op == "/") {
-		if (num2 == 0) throwException("cannot divide by zero");
-		else return (num1 / num2);
-	}
-	else if (op == "%")
-		return (num1 % num2);
-	else if (op == "^")
-		return pow(num1, num2);
-	return -1;
-}
+
 // returns true if the precedecne of op1 is greater than the precedence of op2
-bool  EvaluatorHelper::isOperatorGreaterThan(string op1, string op2) {
+bool  EvaluatorHelper::isOperatorGreaterThan(const string& op1, const string& op2) {
 	int op1Precedence;
 	int op2Precedence;
 	bool result = true;
@@ -289,4 +176,12 @@ bool  EvaluatorHelper::isOperatorGreaterThan(string op1, string op2) {
 		if (iter->first == op2) op2Precedence = iter->second;
 	}
 	return op1Precedence >= op2Precedence;
+}
+
+// returns the integer value of the passed string
+int EvaluatorHelper::strToInt(const string& str) {
+	stringstream stream(str);  // stream used to convert str to int
+	int result = 0;
+	stream >> result;  // reading the token as an integer
+	return result;
 }

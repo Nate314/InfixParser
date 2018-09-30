@@ -1,11 +1,9 @@
-#include <iostream>
+#pragma once
 #include <sstream>
 #include <string>
-#include <vector>
 #include <map>
 using namespace std;
 
-#pragma once
 class EvaluatorHelper {
 public:
 	// all parentheses values are stored here for reference
@@ -28,6 +26,8 @@ public:
 	static bool isParentheses(const string& str);
 	// returns true if the string passed is an operator
 	static bool isOperator(const string& str);
+	// returns true if the string passed is a unary operator (!, --, or ++)
+	static bool isUnaryOperator(const string& str);
 	// returns true if the character passed is part of an operator
 	static bool isPartOfOperator(const char& ch);
 	// returns true if the character passed is an operator on it's own
@@ -36,16 +36,15 @@ public:
 	static bool isDigit(const char& ch);
 	// returns true if the string passed is a number (positive or negative)
 	static bool isNumber(const string& str);
-	// returns a version of the expression passed with one space between each token
-	static string fixSpaces(string expression);
 	// use this method to throw an exception
 	static void throwException(const string& exception);
 	// returns a string with the value of the first strings numerical value added to the integer passed
 	static string addStringAndInt(const string& str, const int& i);
-	// returns a 0 or 1 based on (left token right)
-	static int evalBool(const int& left, const int& right, const string& op);
 	// returns result based on the operation on two numbers(num1 and num2)
-	static int evalOperation( const string& op, const int& num1, const int& num2);
+	//   if a unary operator is passed, the operator will only be applied to the lhs
+	static int evalOperation(const string& op, const int& lhs, const int& rhs);
 	// returns true if the precedecne of op1 is greater than the precedence of op2
-	static bool isOperatorGreaterThan(string op1, string op2);
+	static bool isOperatorGreaterThan(const string& op1, const string& op2);
+	// returns the integer value of the passed string
+	static int strToInt(const string& str);
 };
