@@ -1,4 +1,5 @@
 #include "Evaluator.h"
+#include "Tokenizer.h"
 
 void testEvaluator() {
 	Evaluator eval;
@@ -19,5 +20,6 @@ int main() {
 		 cout<<eval.eval("( ( 1 + 2 ) - 3 ) - 5") <<endl;
 		 system("pause");
 	}
+
 	return 0;
 }
