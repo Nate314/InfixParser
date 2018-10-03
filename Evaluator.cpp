@@ -1,12 +1,16 @@
 #include "Evaluator.h"
 
+Evaluator::Evaluator() {
+
+}
+
 // pass an equation as a string and get the integer result back
 int Evaluator::eval(string equation) {
 	try {
-		while (!operators.empty()) operators.pop();
+		while (!operators_stack.empty()) operators_stack.pop();
 		while (!numbers_stack.empty()) numbers_stack.pop();
-		Tokenizer tokenizer(equation); // process each token
-		string token;
+		tokenizer = Tokenizer(equation); // process each token
+		token = "";
 
 		while (true) {
 			token = tokenizer.next();
@@ -18,25 +22,25 @@ int Evaluator::eval(string equation) {
 				|| EvaluatorHelper::isUnaryOperator(token)
 				|| EvaluatorHelper::isParentheses(token)) { // if the token is a operator or a paranthesis
 				if (token == "(") // check if token is a left paranthsies then push to operator stack
-					operators.push(token);
+					operators_stack.push(token);
 				else if (token == ")") { // if token is a right paranthsies(matching paranthesis)
-					while (!operators.empty() && operators.top() != "(") // making sure top of stack is a closing paranthesis
-						numbers_stack.push(calc(tokenizer, token));
-					operators.pop(); // pop opening paranthesis as we are done evalauting operation
+					while (!operators_stack.empty() && operators_stack.top() != "(") // making sure top of stack is a closing paranthesis
+						numbers_stack.push(calc());
+					operators_stack.pop(); // pop opening paranthesis as we are done evalauting operation
 				}
 				else {
 					// while the operator on top of stack has a precedence greater than or same as the current token(operator)
-					while (!operators.empty() && EvaluatorHelper::isOperatorGreaterThan(operators.top(), token))
-						numbers_stack.push(calc(tokenizer, token));
+					while (!operators_stack.empty() && EvaluatorHelper::isOperatorGreaterThan(operators_stack.top(), token))
+						numbers_stack.push(calc());
 					// After evaluating push current token to operator stack 
-					if (EvaluatorHelper::isOperator(token)) operators.push(token);
+					if (EvaluatorHelper::isOperator(token)) operators_stack.push(token);
 				}
 			}
 		}
 		// This is for rest of the cases when all values have been evaluated in paranthesis 
 		//   evaluate the remaining operations left in the stack
-		while (!operators.empty())
-			numbers_stack.push(calc(tokenizer, token));
+		while (!operators_stack.empty())
+			numbers_stack.push(calc());
 		if (!numbers_stack.empty()) { // checking if stack is not empty
 			int result = numbers_stack.top(); // final result will be on top of stack, pop the top elemnent
 			numbers_stack.pop();
@@ -52,17 +56,17 @@ int Evaluator::eval(string equation) {
 }
 
 // whenever condensing the number_stack
-int Evaluator::calc(Tokenizer& tokenizer, string& token) {
+int Evaluator::calc() {
 	// pop the top operator
-	string op = operators.top(); 
-	operators.pop();
+	string op = operators_stack.top(); 
+	operators_stack.pop();
 	// call appropriate function based on the type of op
-	if (EvaluatorHelper::isUnaryOperator(op)) return calcUnaryOperator(tokenizer, token, op);
-	else return calcNonUnaryOperator(tokenizer, token, op);
+	if (EvaluatorHelper::isUnaryOperator(op)) return calcUnaryOperator(op);
+	else return calcNonUnaryOperator(op);
 }
 
 // call from calc if the top operator is non unary
-int Evaluator::calcNonUnaryOperator(Tokenizer& tokenizer, string& token, string& op) {
+int Evaluator::calcNonUnaryOperator(string& op) {
 	if (numbers_stack.size() >= 2) {
 		// pop the top two numbers from stack
 		int number2 = numbers_stack.top();
@@ -75,7 +79,7 @@ int Evaluator::calcNonUnaryOperator(Tokenizer& tokenizer, string& token, string&
 	else EvaluatorHelper::throwException("Mismatching operators");
 }
 // call from calc if the top operator is unary
-int Evaluator::calcUnaryOperator(Tokenizer& tokenizer, string& token, string& op) {
+int Evaluator::calcUnaryOperator(string& op) {
 	int result;
 	// initialize unary_operators with the operator passed
 	stack<string> unary_operators;

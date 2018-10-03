@@ -1,4 +1,5 @@
 #include "Evaluator.h"
+#include "AutomatedTest.h"
 
 void testEvaluator() {
 	Evaluator eval;
