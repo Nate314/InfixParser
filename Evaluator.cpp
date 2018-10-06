@@ -26,7 +26,8 @@ int Evaluator::eval(string equation) {
 				else if (token == ")") { // if token is a right paranthsies(matching paranthesis)
 					while (!operators_stack.empty() && operators_stack.top() != "(") // making sure top of stack is a closing paranthesis
 						numbers_stack.push(calc());
-					operators_stack.pop(); // pop opening paranthesis as we are done evalauting operation
+					if(operators_stack.size() > 0) operators_stack.pop(); // pop opening paranthesis as we are done evalauting operation
+					else EvaluatorHelper::throwException("Not enough operators in the stack to pop");
 				}
 				else {
 					// while the operator on top of stack has a precedence greater than or same as the current token(operator)
@@ -52,6 +53,7 @@ int Evaluator::eval(string equation) {
 	// catch all exceptions and print to console
 	catch (string e) {
 		cout << e << endl;
+		return -88888888;
 	}
 }
 

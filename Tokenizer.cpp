@@ -48,6 +48,7 @@ Tokenizer::Tokenizer(string expression) {
 	correctOps(eqnPieces);
 	currentPosition = 0; // Initialize currentPosition to 0
 }
+
 string Tokenizer::next() {
 	if (eqnPieces.size() == 0) // If the vector of items is empty, return nothing, because there is nothing to be returned
 		return "";

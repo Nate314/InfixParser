@@ -1,5 +1,4 @@
 #include "Evaluator.h"
-#include "AutomatedTest.h"
 
 void testEvaluator() {
 	Evaluator eval;
@@ -13,11 +12,11 @@ void testEvaluator() {
 }
 
 int main() {
-	bool testing = true;
+	bool testing = false;
 	if (testing) testEvaluator();
 	else {
 		Evaluator eval;
-		cout << eval.eval("((1+2)-3)-5") << endl;
+		cout << eval.eval("5*5-25<=3*--12") << endl;
 		system("pause");
 	}
 	return 0;

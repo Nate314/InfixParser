@@ -20,16 +20,12 @@ public:
 	static bool isMathOperator(const string& str);
 	// returns true if the string passed is a boolean operator
 	static bool isBooleanOperator(const string& str);
-	// returns true if the string passed is an increment or decrement operator
-	static bool isIncrementDecrementOperator(const string& str);
 	// returns true if the string passed is one of these (){}[]
 	static bool isParentheses(const string& str);
 	// returns true if the string passed is an operator
 	static bool isOperator(const string& str);
 	// returns true if the string passed is a unary operator (!, --, or ++)
 	static bool isUnaryOperator(const string& str);
-	// returns true if the character passed is part of an operator
-	static bool isPartOfOperator(const char& ch);
 	// returns true if the character passed is an operator on it's own
 	static bool isOperator(const char& ch);
 	// returns true if the character passed is between and including 0 to 9

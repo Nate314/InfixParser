@@ -62,12 +62,6 @@ bool EvaluatorHelper::isBooleanOperator(const string& str) {
 	else return false;
 }
 
-// returns true if the string passed is an increment or decrement operator
-bool EvaluatorHelper::isIncrementDecrementOperator(const string& str) {
-	if (str == "++" || str == "--") return true;
-	else return false;
-}
-
 // returns true if the string passed is one of these (){}[]
 bool EvaluatorHelper::isParentheses(const string& str) {
 	if (parentheses.find(str) != -1) return true;
@@ -82,16 +76,9 @@ bool EvaluatorHelper::isOperator(const string& str) {
 	return false;
 }
 
+// returns true if the string passed is a unary operator (!, --, or ++)
 bool EvaluatorHelper::isUnaryOperator(const string& str) {
 	if (str == "!" || str == "++" || str == "--") return true;
-	else return false;
-}
-
-// returns true if the character passed is part of an operator
-bool EvaluatorHelper::isPartOfOperator(const char& ch) {
-	string operatorParts = "!=<>|&+-%*/^";
-	if (operatorParts.find(ch) != -1 || isParentheses(ch + ""))
-		return true;
 	else return false;
 }
 
