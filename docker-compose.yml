@@ -1,0 +1,6 @@
+# A console program, not a server: the container prints the result of the sample
+# expression and exits. It publishes no ports.
+services:
+  infix:
+    build: .
+    mem_limit: 64m
